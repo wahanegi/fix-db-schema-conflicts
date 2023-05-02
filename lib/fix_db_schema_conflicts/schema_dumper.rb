@@ -65,7 +65,7 @@ module FixDBSchemaConflicts
       return if all_foreign_keys.empty?
 
       stream.puts
-      all_foreign_keys.sort_by { |fk| [fk.from_table, fk.to_table, fk.name] }.each do |foreign_key|
+      all_foreign_keys.sort_by { |fk| [fk.from_table, fk.to_table, fk.name] }.reverse.each do |foreign_key|
         statement = "  add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}, #{remove_prefix_and_suffix(foreign_key.to_table).inspect}"
         default_column_name = "#{remove_prefix_and_suffix(foreign_key.to_table).singularize}_id"
 
