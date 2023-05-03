@@ -1,3 +1,4 @@
+# lib/fix_db_schema_conflicts/schema_dumper.rb
 require 'delegate'
 
 module FixDBSchemaConflicts
@@ -40,7 +41,10 @@ module FixDBSchemaConflicts
     end
 
     def filtered_tables
-      @connection.tables.reject { |table| table.start_with?(ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']) || %w[schema_migrations ar_internal_metadata].include?(table) }.sort
+      puts "!!!!! schema_dumper.rb#filtered_tables"
+      matchers = %w[schema_migrations ar_internal_metadata]
+      matchers << ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES'] if ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES'].present?
+      @connection.tables.reject { |table| matchers.any? { |matcher| table.start_with?(matcher) } }.sort
     end
 
     def dump(stream)
@@ -57,7 +61,6 @@ module FixDBSchemaConflicts
       filtered_tables.each do |tbl|
         table(tbl, stream)
       end
-      foreign_keys(filtered_tables, stream)
     end
 
     def foreign_keys(tables, stream)
@@ -65,7 +68,7 @@ module FixDBSchemaConflicts
       return if all_foreign_keys.empty?
 
       stream.puts
-      all_foreign_keys.sort_by { |fk| [fk.from_table, fk.to_table, fk.name] }.reverse.each do |foreign_key|
+      all_foreign_keys.sort_by { |fk| [fk.from_table, fk.to_table, fk.name] }.each do |foreign_key|
         statement = "  add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}, #{remove_prefix_and_suffix(foreign_key.to_table).inspect}"
         default_column_name = "#{remove_prefix_and_suffix(foreign_key.to_table).singularize}_id"
 
