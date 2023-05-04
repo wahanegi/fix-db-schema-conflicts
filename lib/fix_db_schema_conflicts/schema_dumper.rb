@@ -3,6 +3,10 @@ require 'delegate'
 
 module FixDBSchemaConflicts
   module SchemaDumper
+    class << self
+      attr_accessor :schema_type
+    end
+
     class ConnectionWithSorting < SimpleDelegator
       def extensions
         __getobj__.extensions.sort
@@ -41,10 +45,18 @@ module FixDBSchemaConflicts
     end
 
     def filtered_tables
-      puts "!!!!! schema_dumper.rb#filtered_tables"
+      FixDBSchemaConflicts::SchemaDumper.schema_type == :primary ? primary_filtered_tables : secondary_filtered_tables
+    end
+
+    def primary_filtered_tables
       matchers = %w[schema_migrations ar_internal_metadata]
-      matchers << ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES'] if ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES'].present?
+      matchers << ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']
       @connection.tables.reject { |table| matchers.any? { |matcher| table.start_with?(matcher) } }.sort
+    end
+
+    def secondary_filtered_tables
+      matcher = ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']
+      @connection.tables.select { |table| table.start_with?(matcher) }.sort
     end
 
     def dump(stream)

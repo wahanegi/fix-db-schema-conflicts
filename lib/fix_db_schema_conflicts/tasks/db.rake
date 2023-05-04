@@ -12,6 +12,7 @@ namespace :db do
       ActiveRecord::Base.connection.schema_search_path = 'public'
 
       filename = Rails.root.join('db', 'schema.rb')
+      FixDBSchemaConflicts::SchemaDumper.schema_type = :primary
       puts "Dumping database schema #{filename} with fix-db-schema-conflicts gem"
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, File.open(filename, 'w:utf-8'))
       `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{Shellwords.shellescape(filename.to_s)}`
@@ -25,6 +26,7 @@ namespace :db do
       ActiveRecord::Base.connection.schema_search_path = 'public'
 
       filename = Rails.root.join('db', "#{ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']}schema.rb")
+      FixDBSchemaConflicts::SchemaDumper.schema_type = :secondary
       puts "Dumping database schema #{filename} with fix-db-schema-conflicts gem"
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, File.open(filename, 'w:utf-8'))
       `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{Shellwords.shellescape(filename.to_s)}`
