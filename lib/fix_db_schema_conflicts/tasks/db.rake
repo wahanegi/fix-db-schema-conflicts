@@ -1,6 +1,6 @@
 # lib/fix_db_schema_conflicts/tasks/db.rake
 
-require_relative '../second_schema_dumper'
+require_relative '../schema_dumper'
 require 'shellwords'
 require_relative '../autocorrect_configuration'
 
@@ -26,7 +26,7 @@ namespace :db do
 
       filename = Rails.root.join('db', "#{ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']}schema.rb")
       puts "Dumping database schema #{filename} with fix-db-schema-conflicts gem"
-      FixDBSchemaConflicts::SecondSchemaDumper.dump(ActiveRecord::Base.connection, File.open(filename, 'w:utf-8'))
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, File.open(filename, 'w:utf-8'))
       `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{Shellwords.shellescape(filename.to_s)}`
     end
 

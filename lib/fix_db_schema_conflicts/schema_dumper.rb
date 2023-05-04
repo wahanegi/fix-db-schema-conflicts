@@ -61,6 +61,7 @@ module FixDBSchemaConflicts
       filtered_tables.each do |tbl|
         table(tbl, stream)
       end
+      foreign_keys(filtered_tables, stream)
     end
 
     def foreign_keys(tables, stream)
