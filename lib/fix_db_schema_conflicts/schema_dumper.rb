@@ -45,7 +45,7 @@ module FixDBSchemaConflicts
     end
 
     def filtered_tables
-      FixDBSchemaConflicts::SchemaDumper.schema_type == :primary ? primary_filtered_tables : secondary_filtered_tables
+      FixDBSchemaConflicts::SchemaDumper.schema_type == :secondary ? secondary_filtered_tables : primary_filtered_tables
     end
 
     def primary_filtered_tables

@@ -4,37 +4,22 @@ require_relative '../schema_dumper'
 require 'shellwords'
 require_relative '../autocorrect_configuration'
 
+def dump_schema(filename, schema_type)
+  autocorrect_config = FixDBSchemaConflicts::AutocorrectConfiguration.load
+  rubocop_yml = File.expand_path("../../../../#{autocorrect_config}", __FILE__)
+  ActiveRecord::Base.connection.schema_search_path = 'public'
+
+  FixDBSchemaConflicts::SchemaDumper.schema_type = schema_type
+  puts "Dumping database schema #{filename} with fix-db-schema-conflicts gem"
+  ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, File.open(filename, 'w:utf-8'))
+  `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{Shellwords.shellescape(filename.to_s)}`
+end
+
 namespace :db do
   namespace :schema do
-    task :dump_primary_schema do
-      autocorrect_config = FixDBSchemaConflicts::AutocorrectConfiguration.load
-      rubocop_yml = File.expand_path("../../../../#{autocorrect_config}", __FILE__)
-      ActiveRecord::Base.connection.schema_search_path = 'public'
-
-      filename = Rails.root.join('db', 'schema.rb')
-      FixDBSchemaConflicts::SchemaDumper.schema_type = :primary
-      puts "Dumping database schema #{filename} with fix-db-schema-conflicts gem"
-      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, File.open(filename, 'w:utf-8'))
-      `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{Shellwords.shellescape(filename.to_s)}`
-    end
-
-    task :dump_secondary_schema do
-      next if ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES'].blank?
-
-      autocorrect_config = FixDBSchemaConflicts::AutocorrectConfiguration.load
-      rubocop_yml = File.expand_path("../../../../#{autocorrect_config}", __FILE__)
-      ActiveRecord::Base.connection.schema_search_path = 'public'
-
-      filename = Rails.root.join('db', "#{ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']}schema.rb")
-      FixDBSchemaConflicts::SchemaDumper.schema_type = :secondary
-      puts "Dumping database schema #{filename} with fix-db-schema-conflicts gem"
-      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, File.open(filename, 'w:utf-8'))
-      `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{Shellwords.shellescape(filename.to_s)}`
-    end
-
     task :dump_schemas do
-      Rake::Task['db:schema:dump_primary_schema'].invoke
-      Rake::Task['db:schema:dump_secondary_schema'].invoke
+      dump_schema(Rails.root.join('db', 'schema.rb'), :primary)
+      dump_schema(Rails.root.join('db', "#{ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']}schema.rb"), :secondary)
     end
   end
 
