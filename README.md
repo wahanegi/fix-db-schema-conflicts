@@ -1,7 +1,7 @@
 # fix-db-schema-conflicts
 
-This is a variation of [fix-db-schema-conflicts](https://github.com/jakeonrails/fix-db-schema-conflicts)
-with the main difference being that it supports 2 different databases. 
+This is a modification of [fix-db-schema-conflicts](https://github.com/jakeonrails/fix-db-schema-conflicts)
+to enable it to work effectively with two databases. 
 
 1. The secondary database should have all tables prepended with something like `second_`. For example `second_users`, `second_services`, etc.
 2. The app that is using the gem should store this prepend name (`_second`) in an environmental variable `PRECEDES_SECONDARY_DB_TABLE_NAMES`.
@@ -37,7 +37,7 @@ And then execute:
  - [@rosscooperman](https://github.com/rosscooperman)
  - [@cabello](https://github.com/cabello)
  - [@justisb](https://github.com/justisb)
- - [@rogergraves](https://github.com/rogergraves)
+ - [@rogergraves](https://github.com/rogergraves) - Maintainer of this fork
 
 ## Releases
 - 3.2.0
