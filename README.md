@@ -16,7 +16,7 @@ If you aren't familiar with the original gem, please read the original README [h
 Add this line to your application's Gemfile in your development group:
 
 ```ruby
-gem 'fix-db-schema-conflicts', github: 'wyzyr/fix-db-schema-conflicts', branch: 'master'
+gem 'fix-db-schema-conflicts', git: 'git@github.com:wahanegi/fix-db-schema-conflicts'
 ```
 
 And then execute:
