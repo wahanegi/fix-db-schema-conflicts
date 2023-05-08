@@ -6,11 +6,11 @@ require 'fix_db_schema_conflicts/version'
 Gem::Specification.new do |spec|
   spec.name          = 'fix-db-schema-conflicts'
   spec.version       = FixDBSchemaConflicts::VERSION
-  spec.authors       = ['Jake Moffatt']
-  spec.email         = ['jakeonrails@gmail.com']
-  spec.summary       = %q{Helps prevent unneeded db/schema.rb conflicts}
-  spec.description   = %q{Ensures consistent output of db/schema.rb despite local differences in the database}
-  spec.homepage      = 'https://github.com/jakeonrails/fix-db-schema-conflicts'
+  spec.authors       = ['Roger Graves']
+  spec.email         = ['rogergraves@gmail.com']
+  spec.summary       = %q{Helps prevent unneeded conflicts in multi-database schemas}
+  spec.description   = %q{Ensures consistent output of db/schema.rb and a secondary database schema despite local differences in the database}
+  spec.homepage      = 'https://github.com/wahanegi/fix-db-schema-conflicts'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")
