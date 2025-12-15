@@ -1,19 +1,39 @@
+# lib/fix_db_schema_conflicts/tasks/db.rake
+
+require_relative '../schema_dumper'
 require 'shellwords'
 require_relative '../autocorrect_configuration'
 
+def dump_schema(filename, schema_type)
+  autocorrect_config = FixDBSchemaConflicts::AutocorrectConfiguration.load
+  rubocop_yml = File.expand_path("../../../../#{autocorrect_config}", __FILE__)
+
+  # Only set schema_search_path for PostgreSQL
+  if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+    ActiveRecord::Base.connection.schema_search_path = 'public'
+  end
+
+  FixDBSchemaConflicts::SchemaDumper.schema_type = schema_type
+  puts "Dumping database schema #{filename} with fix-db-schema-conflicts gem"
+  ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, File.open(filename, 'w:utf-8'))
+  `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{Shellwords.shellescape(filename.to_s)}`
+end
+
 namespace :db do
   namespace :schema do
-    task :dump do
-      puts "Dumping database schema with fix-db-schema-conflicts gem"
-
-      filename = ENV['SCHEMA'] || if defined? ActiveRecord::Tasks::DatabaseTasks
-        File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
-      else
-        "#{Rails.root}/db/schema.rb"
-      end
-      autocorrect_config = FixDBSchemaConflicts::AutocorrectConfiguration.load
-      rubocop_yml = File.expand_path("../../../../#{autocorrect_config}", __FILE__)
-      `bundle exec rubocop --auto-correct --config #{rubocop_yml} #{filename.shellescape}`
+    task :dump_schemas do
+      dump_schema(Rails.root.join('db', 'schema.rb'), :primary)
+      dump_schema(Rails.root.join('db', "#{ENV['PRECEDES_SECONDARY_DB_TABLE_NAMES']}schema.rb"), :secondary)
     end
+  end
+
+  # Enhance the existing db:schema:dump task
+  Rake::Task['db:schema:dump'].enhance do
+    Rake::Task['db:schema:dump_schemas'].invoke
+  end
+
+  # Enhance the existing db:migrate task
+  Rake::Task['db:migrate'].enhance do
+    Rake::Task['db:schema:dump_schemas'].invoke
   end
 end
